@@ -35,7 +35,7 @@ app.innerHTML = `
         </div>
         <p id="graph-title" class="graph-title"></p>
       </div>
-      <p class="graph-hint">拖曳節點、滾輪縮放、拖動畫布平移。左側工具列按需打開選單。</p>
+      <p class="graph-hint">拖曳節點、滾輪或右下角按鈕縮放、拖動畫布平移。左側工具列按需打開選單。</p>
     </header>
     <section class="overlay-panel overlay-panel-tools">
       <div id="tool-dock" class="panel tool-dock"></div>

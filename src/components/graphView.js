@@ -11,10 +11,19 @@ export function createGraphView(container, callbacks) {
   /** @type {Map<string, { x: number, y: number }>} */
   const positions = new Map()
   let hasRenderedGraph = false
+  const zoomStep = 1.15
 
   const root = document.createElement('div')
   root.className = 'graph-shell'
   container.append(root)
+
+  const zoomControls = document.createElement('div')
+  zoomControls.className = 'graph-zoom-controls'
+  zoomControls.innerHTML = `
+    <button type="button" class="graph-zoom-button" data-zoom-action="in" aria-label="放大圖譜">+</button>
+    <button type="button" class="graph-zoom-button" data-zoom-action="out" aria-label="縮小圖譜">-</button>
+  `
+  container.append(zoomControls)
 
   const cy = cytoscape({
     container: root,
@@ -123,6 +132,13 @@ export function createGraphView(container, callbacks) {
   })
 
   resizeObserver.observe(container)
+
+  zoomControls.querySelectorAll('[data-zoom-action]').forEach(element => {
+    element.addEventListener('click', () => {
+      const button = /** @type {HTMLButtonElement} */ (element)
+      zoomByStep(button.dataset.zoomAction === 'in' ? zoomStep : 1 / zoomStep)
+    })
+  })
 
   /**
    * @param {{ characters: any[], relationships: any[] }} graph
@@ -279,6 +295,29 @@ export function createGraphView(container, callbacks) {
     }
 
     cy.center()
+  }
+
+  /**
+   * @param {number} multiplier
+   */
+  function zoomByStep(multiplier) {
+    if (cy.elements().empty()) {
+      return
+    }
+
+    const currentZoom = cy.zoom()
+    const nextZoom = Math.max(cy.minZoom(), Math.min(currentZoom * multiplier, cy.maxZoom()))
+    if (nextZoom === currentZoom) {
+      return
+    }
+
+    cy.zoom({
+      level: nextZoom,
+      renderedPosition: {
+        x: cy.width() / 2,
+        y: cy.height() / 2,
+      },
+    })
   }
 
   return {
