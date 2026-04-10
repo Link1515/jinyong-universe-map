@@ -10,6 +10,7 @@ import cytoscape from "cytoscape";
 export function createGraphView(container, callbacks) {
   /** @type {Map<string, { x: number, y: number }>} */
   const positions = new Map();
+  let hasRenderedGraph = false;
 
   const root = document.createElement("div");
   root.className = "graph-shell";
@@ -18,9 +19,9 @@ export function createGraphView(container, callbacks) {
   const cy = cytoscape({
     container: root,
     elements: [],
-    layout: { name: "grid" },
+    layout: { name: "preset" },
     wheelSensitivity: 0.18,
-    minZoom: 0.45,
+    minZoom: 0.3,
     maxZoom: 2.2,
     boxSelectionEnabled: false,
     style: [
@@ -111,6 +112,16 @@ export function createGraphView(container, callbacks) {
     positions.set(event.target.id(), { x: position.x, y: position.y });
   });
 
+  const resizeObserver = new ResizeObserver(() => {
+    cy.resize();
+    if (!hasRenderedGraph || cy.elements().empty()) {
+      return;
+    }
+    fitGraph();
+  });
+
+  resizeObserver.observe(container);
+
   /**
    * @param {{ characters: any[], relationships: any[] }} graph
    */
@@ -151,13 +162,42 @@ export function createGraphView(container, callbacks) {
     cy.add([...nodeElements, ...edgeElements]);
 
     const hasPresetPositions = nodeElements.some((element) => "position" in element);
+    const layout = cy.layout(
+      hasPresetPositions
+        ? {
+            name: "preset",
+            animate: false,
+            fit: false
+          }
+        : {
+            name: "cose",
+            animate: false,
+            fit: false,
+            randomize: true,
+            padding: 120,
+            nodeRepulsion(node) {
+              return 240000 + node.degree(false) * 32000;
+            },
+            idealEdgeLength(edge) {
+              const weight = Number(edge.data("weight")) || 1;
+              return 180 + Math.max(0, 5 - weight) * 24;
+            },
+            edgeElasticity(edge) {
+              const weight = Number(edge.data("weight")) || 1;
+              return 80 + weight * 16;
+            },
+            gravity: 0.12,
+            componentSpacing: 260,
+            nestingFactor: 0.7,
+            numIter: 3000,
+            initialTemp: 1200,
+            coolingFactor: 0.955
+          }
+    );
 
-    cy.layout({
-      name: hasPresetPositions ? "preset" : "cose",
-      animate: false,
-      fit: true,
-      padding: 40
-    }).run();
+    layout.run();
+    fitGraph();
+    hasRenderedGraph = true;
 
     cy.nodes().forEach((node) => {
       const position = node.position();
@@ -172,7 +212,7 @@ export function createGraphView(container, callbacks) {
     cy.elements().removeClass("is-highlighted is-selected is-muted");
 
     if (!nodeId) {
-      cy.fit(cy.elements(), 40);
+      fitGraph();
       return;
     }
 
@@ -216,6 +256,27 @@ export function createGraphView(container, callbacks) {
         edge.addClass("is-selected");
       }
     }
+  }
+
+  function fitGraph() {
+    if (cy.elements().empty()) {
+      return;
+    }
+
+    cy.fit(cy.elements(), 96);
+
+    const nextZoom = Math.min(cy.zoom(), 0.78);
+    if (nextZoom !== cy.zoom()) {
+      cy.zoom({
+        level: nextZoom,
+        renderedPosition: {
+          x: cy.width() / 2,
+          y: cy.height() / 2
+        }
+      });
+    }
+
+    cy.center();
   }
 
   return {
