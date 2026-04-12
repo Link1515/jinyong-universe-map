@@ -1,7 +1,7 @@
-import { novels } from "./novels.js";
+import { novels } from "./novels";
+import type { Character, Relationship, UniverseData } from "../types";
 
-/** @type {import("../types.js").Character[]} */
-export const characters = [
+export const characters: Character[] = [
   { id: "chen-jialuo", name: "陳家洛", aliases: ["總舵主"], novels: ["book-sword"], gender: "male", factions: ["紅花會"], title: "紅花會總舵主", description: "文武兼備的紅花會領袖，夾在反清復明與個人感情之間。", tags: ["主角", "紅花會"] },
   { id: "huo-qingtong", name: "霍青桐", aliases: ["翠羽黃衫"], novels: ["book-sword"], gender: "female", factions: ["回部"], title: "回部女將", description: "木卓倫之女，智勇雙全，與陳家洛的感情和回部局勢交織成全書主線。", tags: ["女主角", "軍略"] },
   { id: "xiang-xiang", name: "香香公主", aliases: ["喀絲麗"], novels: ["book-sword"], gender: "female", factions: ["回部"], title: "回部公主", description: "霍青桐之妹，以純真與美貌牽動多方勢力，命運直接推高結局悲劇色彩。", tags: ["關鍵角色"] },
@@ -86,8 +86,7 @@ export const characters = [
   { id: "goujian", name: "勾踐", aliases: [], novels: ["sword-of-yue-maiden"], gender: "male", factions: ["越國"], title: "越王", description: "越國復興核心人物，亦象徵政治大局。", tags: ["君主"] }
 ];
 
-/** @type {import("../types.js").Relationship[]} */
-export const relationships = [
+export const relationships: Relationship[] = [
   { id: "r1", source: "chen-jialuo", target: "huo-qingtong", type: "romance", label: "相愛難圓", description: "陳家洛與霍青桐彼此傾心，卻因誤會、責任與局勢始終難以圓滿。", directed: false, novels: ["book-sword"], weight: 5, metadata: { note: "全書核心感情主線之一" } },
   { id: "r2", source: "chen-jialuo", target: "huo-qingtong", type: "alliance", label: "並肩抗敵", description: "陳家洛與霍青桐共同對抗清廷與外敵，亦在反清局勢中互相扶持。", directed: false, novels: ["book-sword"], weight: 4 },
   { id: "r3", source: "huo-qingtong", target: "xiang-xiang", type: "family", label: "姊妹", description: "霍青桐與香香公主為姊妹，既情深義重，也因共同愛上陳家洛而陷入痛苦。", directed: false, novels: ["book-sword"], weight: 5 },
@@ -200,4 +199,4 @@ export const relationships = [
   { id: "r56", source: "fanli", target: "goujian", type: "sect", label: "君臣", description: "范蠡輔佐勾踐興越。", directed: true, novels: ["sword-of-yue-maiden"], weight: 3 }
 ];
 
-export const universe = { novels, characters, relationships };
+export const universe: UniverseData = { novels, characters, relationships };

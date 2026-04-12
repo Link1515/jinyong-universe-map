@@ -1,5 +1,6 @@
-/** @type {import("../types.js").RelationshipType[]} */
-export const relationshipTypes = [
+import type { RelationshipType } from "../types";
+
+export const relationshipTypes: RelationshipType[] = [
   { id: "family", name: "血緣", group: "家族", color: "#b5513c", line: "solid" },
   { id: "romance", name: "感情", group: "情感", color: "#b06ab3", line: "solid" },
   { id: "marriage", name: "婚姻", group: "情感", color: "#7e4aa8", line: "solid" },

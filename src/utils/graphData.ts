@@ -1,14 +1,14 @@
-import { relationshipTypes } from "../data/relationshipTypes.js";
+import { relationshipTypes } from "../data";
+import type { Character, Relationship, RelationshipType, VisibleGraph } from "../types";
 
-const typeMap = new Map(relationshipTypes.map((type) => [type.id, type]));
+const typeMap = new Map<string, RelationshipType>(relationshipTypes.map((type) => [type.id, type]));
 
-/**
- * @param {string[]} novelIds
- * @param {string[]} activeTypes
- * @param {import("../types.js").Character[]} characters
- * @param {import("../types.js").Relationship[]} relationships
- */
-export function getVisibleGraph(novelIds, activeTypes, characters, relationships) {
+export function getVisibleGraph(
+  novelIds: string[],
+  activeTypes: string[],
+  characters: Character[],
+  relationships: Relationship[]
+): VisibleGraph {
   const selectedNovelIds = novelIds.length > 0 ? new Set(novelIds) : null;
   const selectedTypes = activeTypes.length > 0 ? new Set(activeTypes) : null;
 
@@ -43,19 +43,13 @@ export function getVisibleGraph(novelIds, activeTypes, characters, relationships
     filteredRelationships.flatMap((relationship) => [relationship.source, relationship.target])
   );
 
-  const connectedCharacters = filteredCharacters.filter((character) => relationshipCharacterIds.has(character.id));
-
   return {
-    characters: connectedCharacters,
+    characters: filteredCharacters.filter((character) => relationshipCharacterIds.has(character.id)),
     relationships: filteredRelationships
   };
 }
 
-/**
- * @param {string} query
- * @param {import("../types.js").Character[]} characters
- */
-export function searchCharacters(query, characters) {
+export function searchCharacters(query: string, characters: Character[]): Character[] {
   const normalized = query.trim().toLowerCase();
   if (!normalized) {
     return [];
@@ -67,9 +61,6 @@ export function searchCharacters(query, characters) {
   });
 }
 
-/**
- * @param {string} relationshipTypeId
- */
-export function getRelationshipType(relationshipTypeId) {
+export function getRelationshipType(relationshipTypeId: string): RelationshipType | null {
   return typeMap.get(relationshipTypeId) ?? null;
 }

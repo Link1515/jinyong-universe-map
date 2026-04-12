@@ -1,5 +1,6 @@
-/** @type {import("../types.js").Novel[]} */
-export const novels = [
+import type { Novel } from "../types";
+
+export const novels: Novel[] = [
   { id: "book-sword", name: "書劍恩仇錄", era: "清初", description: "紅花會與清廷角力，陳家洛身處家國與情義之間。" },
   { id: "blood-sword", name: "碧血劍", era: "明末清初", description: "袁承志承接國仇家恨，游走江湖與亂世。" },
   { id: "legend-condor", name: "射鵰英雄傳", era: "南宋", description: "郭靖、黃蓉與群雄在宋金蒙古夾縫中行俠。" },
