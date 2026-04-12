@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import DetailDrawer from "./components/DetailDrawer.vue";
-import FilterMenu from "./components/FilterMenu.vue";
-import GraphCanvas from "./components/GraphCanvas.vue";
-import LegendMenu from "./components/LegendMenu.vue";
-import NovelMenu from "./components/NovelMenu.vue";
-import SearchMenu from "./components/SearchMenu.vue";
-import ToolDock from "./components/ToolDock.vue";
-import { useUniverseMap } from "./composables/useUniverseMap";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import DetailDrawer from './components/DetailDrawer.vue'
+import FilterMenu from './components/FilterMenu.vue'
+import GraphCanvas from './components/GraphCanvas.vue'
+import LegendMenu from './components/LegendMenu.vue'
+import NovelMenu from './components/NovelMenu.vue'
+import SearchMenu from './components/SearchMenu.vue'
+import ToolDock from './components/ToolDock.vue'
+import { useUniverseMap } from './composables/useUniverseMap'
 
 const {
   state,
@@ -33,81 +33,75 @@ const {
   selectRelationship,
   openCharacterFromSearch,
   setDetailOpen,
-  ensureVisibleSelection
-} = useUniverseMap();
+  ensureVisibleSelection,
+} = useUniverseMap()
 
-const toolsPanelRef = ref<HTMLElement | null>(null);
-const detailDrawerRef = ref<HTMLElement | null>(null);
+const toolsPanelRef = ref<HTMLElement | null>(null)
+const detailDrawerRef = ref<HTMLElement | null>(null)
 
 const highlightedNodeId = computed(() => {
-  if (state.activeMenu === "search") {
-    return searchMatches.value[0]?.id ?? null;
+  if (state.activeMenu === 'search') {
+    return searchMatches.value[0]?.id ?? null
   }
 
-  if (state.detail.kind === "character") {
-    return state.detail.id;
+  if (state.detail.kind === 'character') {
+    return state.detail.id
   }
 
-  return null;
-});
+  return null
+})
 
 function handlePointerDown(event: PointerEvent): void {
-  const target = event.target;
+  const target = event.target
   if (!(target instanceof Node)) {
-    return;
+    return
   }
 
   if (toolsPanelRef.value?.contains(target) || detailDrawerRef.value?.contains(target)) {
-    return;
+    return
   }
 
-  closeMenu();
+  closeMenu()
 }
 
 function handleMenuEmit(eventName: string, payload?: string): void {
-  if (eventName === "selectNovel" && payload) {
-    selectNovel(payload);
+  if (eventName === 'selectNovel' && payload) {
+    selectNovel(payload)
   }
 
-  if (eventName === "updateQuery") {
-    updateSearchQuery(payload ?? "");
+  if (eventName === 'updateQuery') {
+    updateSearchQuery(payload ?? '')
   }
 
-  if (eventName === "selectCharacter" && payload) {
-    openCharacterFromSearch(payload);
+  if (eventName === 'selectCharacter' && payload) {
+    openCharacterFromSearch(payload)
   }
 
-  if (eventName === "toggleType" && payload) {
-    toggleRelationshipType(payload);
+  if (eventName === 'toggleType' && payload) {
+    toggleRelationshipType(payload)
   }
 
-  if (eventName === "reset") {
-    resetRelationshipTypes();
+  if (eventName === 'reset') {
+    resetRelationshipTypes()
   }
 }
 
 onMounted(() => {
-  document.addEventListener("pointerdown", handlePointerDown);
-});
+  document.addEventListener('pointerdown', handlePointerDown)
+})
 
 onBeforeUnmount(() => {
-  document.removeEventListener("pointerdown", handlePointerDown);
-});
+  document.removeEventListener('pointerdown', handlePointerDown)
+})
 
 watch(graph, () => {
-  ensureVisibleSelection();
-});
+  ensureVisibleSelection()
+})
 </script>
 
 <template>
   <main class="workspace-canvas">
-    <GraphCanvas
-      :graph="graph"
-      :detail="state.detail"
-      :highlighted-node-id="highlightedNodeId"
-      @node-select="selectCharacter"
-      @edge-select="selectRelationship"
-    />
+    <GraphCanvas :graph="graph" :detail="state.detail" :highlighted-node-id="highlightedNodeId" @node-select="selectCharacter" @edge-select="selectRelationship" />
 
     <header class="panel overlay-panel overlay-panel-status">
       <div class="status-head">
@@ -121,21 +115,10 @@ watch(graph, () => {
     </header>
 
     <section ref="toolsPanelRef" class="overlay-panel overlay-panel-tools">
-      <ToolDock
-        :active-menu="state.activeMenu"
-        :selected-novel="selectedNovel"
-        :active-filter-count="activeFilterCount"
-        :search-query="state.searchQuery"
-        @toggle-menu="toggleMenu"
-      />
+      <ToolDock :active-menu="state.activeMenu" :selected-novel="selectedNovel" :active-filter-count="activeFilterCount" :search-query="state.searchQuery" @toggle-menu="toggleMenu" />
 
       <div v-if="state.activeMenu" class="panel menu-panel">
-        <NovelMenu
-          v-if="state.activeMenu === 'novels'"
-          :novels="novels"
-          :selected-novel-id="state.selectedNovelId"
-          @select-novel="handleMenuEmit('selectNovel', $event)"
-        />
+        <NovelMenu v-if="state.activeMenu === 'novels'" :novels="novels" :selected-novel-id="state.selectedNovelId" @select-novel="handleMenuEmit('selectNovel', $event)" />
         <SearchMenu
           v-else-if="state.activeMenu === 'search'"
           :query="state.searchQuery"

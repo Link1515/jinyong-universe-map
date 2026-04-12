@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { RelationshipType } from "../types";
+import type { RelationshipType } from '../types'
 
 defineProps<{
-  relationshipTypes: RelationshipType[];
-}>();
+  relationshipTypes: RelationshipType[]
+}>()
 </script>
 
 <template>

@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { getRelationshipType } from "../utils/graphData";
-import { translateGender } from "../utils/formatters";
-import type { Character, DetailSelection, Novel, Relationship, RelationshipWithType } from "../types";
+import { computed } from 'vue'
+import { getRelationshipType } from '../utils/graphData'
+import { translateGender } from '../utils/formatters'
+import type { Character, DetailSelection, Novel, Relationship, RelationshipWithType } from '../types'
 
 const props = defineProps<{
-  detailOpen: boolean;
-  detail: DetailSelection;
-  selectedNovel: Novel | null;
-  selectedCharacter: Character | null;
-  selectedRelationship: Relationship | null;
-  detailCharacterRelationships: RelationshipWithType[];
-  novelMap: Map<string, Novel>;
-  characterMap: Map<string, Character>;
-}>();
+  detailOpen: boolean
+  detail: DetailSelection
+  selectedNovel: Novel | null
+  selectedCharacter: Character | null
+  selectedRelationship: Relationship | null
+  detailCharacterRelationships: RelationshipWithType[]
+  novelMap: Map<string, Novel>
+  characterMap: Map<string, Character>
+}>()
 
 const emit = defineEmits<{
-  toggleOpen: [];
-  close: [];
-  selectCharacter: [characterId: string];
-}>();
+  toggleOpen: []
+  close: []
+  selectCharacter: [characterId: string]
+}>()
 
-const panelTitle = computed(() => props.selectedNovel?.name ?? "人物圖譜");
+const panelTitle = computed(() => props.selectedNovel?.name ?? '人物圖譜')
 </script>
 
 <template>
@@ -42,11 +42,11 @@ const panelTitle = computed(() => props.selectedNovel?.name ?? "人物圖譜");
           <div class="detail-grid">
             <div>
               <span>作品</span>
-              <strong>{{ selectedCharacter.novels.map((id) => novelMap.get(id)?.name ?? id).join("、") }}</strong>
+              <strong>{{ selectedCharacter.novels.map(id => novelMap.get(id)?.name ?? id).join('、') }}</strong>
             </div>
             <div>
               <span>別名</span>
-              <strong>{{ selectedCharacter.aliases.length ? selectedCharacter.aliases.join("、") : "無" }}</strong>
+              <strong>{{ selectedCharacter.aliases.length ? selectedCharacter.aliases.join('、') : '無' }}</strong>
             </div>
             <div>
               <span>性別</span>
@@ -54,7 +54,7 @@ const panelTitle = computed(() => props.selectedNovel?.name ?? "人物圖譜");
             </div>
             <div>
               <span>勢力</span>
-              <strong>{{ selectedCharacter.factions.length ? selectedCharacter.factions.join("、") : "無" }}</strong>
+              <strong>{{ selectedCharacter.factions.length ? selectedCharacter.factions.join('、') : '無' }}</strong>
             </div>
           </div>
           <p class="detail-body">{{ selectedCharacter.description }}</p>
@@ -72,10 +72,7 @@ const panelTitle = computed(() => props.selectedNovel?.name ?? "人物圖譜");
             >
               <strong>{{ relationship.label }}</strong>
               <span>
-                {{
-                  characterMap.get(relationship.source === selectedCharacter.id ? relationship.target : relationship.source)?.name ??
-                  "未知人物"
-                }}
+                {{ characterMap.get(relationship.source === selectedCharacter.id ? relationship.target : relationship.source)?.name ?? '未知人物' }}
                 ·
                 {{ relationship.typeConfig?.name ?? relationship.type }}
               </span>
@@ -98,11 +95,11 @@ const panelTitle = computed(() => props.selectedNovel?.name ?? "人物圖譜");
             </div>
             <div>
               <span>方向性</span>
-              <strong>{{ selectedRelationship.directed ? "有方向" : "雙向" }}</strong>
+              <strong>{{ selectedRelationship.directed ? '有方向' : '雙向' }}</strong>
             </div>
             <div>
               <span>作品</span>
-              <strong>{{ selectedRelationship.novels.map((id) => novelMap.get(id)?.name ?? id).join("、") }}</strong>
+              <strong>{{ selectedRelationship.novels.map(id => novelMap.get(id)?.name ?? id).join('、') }}</strong>
             </div>
             <div>
               <span>重要度</span>
@@ -110,15 +107,13 @@ const panelTitle = computed(() => props.selectedNovel?.name ?? "人物圖譜");
             </div>
           </div>
           <p class="detail-body">{{ selectedRelationship.description }}</p>
-          <p v-if="selectedRelationship.metadata?.note" class="meta-note">
-            <strong>備註：</strong>{{ selectedRelationship.metadata.note }}
-          </p>
+          <p v-if="selectedRelationship.metadata?.note" class="meta-note"><strong>備註：</strong>{{ selectedRelationship.metadata.note }}</p>
         </article>
 
         <article v-else class="detail-card">
           <p class="eyebrow">導覽</p>
           <h3>{{ panelTitle }}</h3>
-          <p class="detail-body">{{ selectedNovel?.description ?? "" }}</p>
+          <p class="detail-body">{{ selectedNovel?.description ?? '' }}</p>
           <ul class="guide-list">
             <li>點擊人物可查看角色資料與可跳轉的重要關係。</li>
             <li>點擊連線可查看關係類型、描述與作品歸屬。</li>

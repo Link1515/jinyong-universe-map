@@ -7,8 +7,8 @@
   --muted: #7a6650;
   --accent: #8c3b2a;
   --shadow: 0 24px 64px rgba(54, 34, 17, 0.14);
-  --serif: "Noto Serif TC", "PMingLiU", serif;
-  --sans: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --serif: 'Noto Serif TC', 'PMingLiU', serif;
+  --sans: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
 }
 
 * {
@@ -24,8 +24,7 @@ body,
 body {
   margin: 0;
   background:
-    radial-gradient(circle at top left, rgba(168, 101, 71, 0.24), transparent 24%),
-    radial-gradient(circle at bottom right, rgba(63, 111, 181, 0.18), transparent 28%),
+    radial-gradient(circle at top left, rgba(168, 101, 71, 0.24), transparent 24%), radial-gradient(circle at bottom right, rgba(63, 111, 181, 0.18), transparent 28%),
     linear-gradient(135deg, #d7c7af, #efe4d0 46%, #dccdb8);
   color: var(--text);
   font-family: var(--sans);
@@ -51,10 +50,12 @@ input {
   width: 100%;
   height: 100%;
   background:
-    linear-gradient(rgba(121, 94, 57, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(121, 94, 57, 0.07) 1px, transparent 1px),
+    linear-gradient(rgba(121, 94, 57, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(121, 94, 57, 0.07) 1px, transparent 1px),
     radial-gradient(circle at top, rgba(255, 254, 250, 0.9), rgba(239, 228, 208, 0.78) 58%, rgba(221, 205, 181, 0.92));
-  background-size: 36px 36px, 36px 36px, auto;
+  background-size:
+    36px 36px,
+    36px 36px,
+    auto;
 }
 
 .graph-zoom-controls {
@@ -77,7 +78,11 @@ input {
   cursor: pointer;
   font-size: 1.5rem;
   line-height: 1;
-  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .graph-zoom-button:hover {
@@ -211,7 +216,11 @@ h2 {
   color: var(--text);
   cursor: pointer;
   text-align: left;
-  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .tool-button span {
@@ -268,7 +277,11 @@ h2 {
   border-radius: 16px;
   color: var(--text);
   cursor: pointer;
-  transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
 }
 
 .novel-tab,
@@ -299,7 +312,7 @@ h2 {
 }
 
 .type-filter::before {
-  content: "";
+  content: '';
   position: absolute;
   left: 12px;
   top: 50%;

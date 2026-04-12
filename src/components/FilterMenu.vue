@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import type { RelationshipType } from "../types";
+import type { RelationshipType } from '../types'
 
 defineProps<{
-  relationshipTypes: RelationshipType[];
-  activeTypeIds: string[];
-}>();
+  relationshipTypes: RelationshipType[]
+  activeTypeIds: string[]
+}>()
 
 const emit = defineEmits<{
-  toggleType: [typeId: string];
-  reset: [];
-}>();
+  toggleType: [typeId: string]
+  reset: []
+}>()
 </script>
 
 <template>

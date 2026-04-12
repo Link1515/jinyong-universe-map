@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import type { Novel } from "../types";
+import type { Novel } from '../types'
 
 defineProps<{
-  novels: Novel[];
-  selectedNovelId: string;
-}>();
+  novels: Novel[]
+  selectedNovelId: string
+}>()
 
 const emit = defineEmits<{
-  selectNovel: [novelId: string];
-}>();
+  selectNovel: [novelId: string]
+}>()
 </script>
 
 <template>
@@ -21,14 +21,7 @@ const emit = defineEmits<{
       <span class="menu-meta">{{ novels.length }} 部作品</span>
     </div>
     <div class="novel-tabs">
-      <button
-        v-for="novel in novels"
-        :key="novel.id"
-        type="button"
-        class="novel-tab"
-        :class="{ 'is-active': novel.id === selectedNovelId }"
-        @click="emit('selectNovel', novel.id)"
-      >
+      <button v-for="novel in novels" :key="novel.id" type="button" class="novel-tab" :class="{ 'is-active': novel.id === selectedNovelId }" @click="emit('selectNovel', novel.id)">
         {{ novel.name }}
       </button>
     </div>
