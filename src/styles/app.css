@@ -147,10 +147,11 @@ input {
 .overlay-panel-status.is-minimized {
   display: grid;
   place-items: center;
-  width: 58px;
-  min-width: 58px;
-  padding: 8px;
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
   border-radius: 18px;
+  padding: 0;
 }
 
 .status-minimize-button {
@@ -159,9 +160,9 @@ input {
   justify-content: center;
   width: 40px;
   height: 40px;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 12px;
-  background: rgba(255, 252, 247, 0.92);
+  background: transparent;
   color: var(--text);
   cursor: pointer;
   transition:
@@ -171,15 +172,9 @@ input {
     box-shadow 140ms ease;
 }
 
-.status-minimize-button:hover {
-  transform: translateY(-1px);
-  border-color: rgba(140, 59, 42, 0.35);
-  background: rgba(255, 248, 239, 0.96);
-  box-shadow: 0 8px 16px rgba(95, 36, 24, 0.08);
-}
-
 .status-minimize-icon {
-  font-size: 1rem;
+  font-size: 1.1rem;
+  color: var(--muted);
 }
 
 .overlay-panel-status:not(.is-minimized) .status-minimize-button {
