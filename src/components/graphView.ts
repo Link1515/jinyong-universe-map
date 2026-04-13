@@ -1,6 +1,12 @@
 import cytoscape, { type Core, type ElementDefinition } from 'cytoscape'
 import type { VisibleGraph } from '../types'
 
+const NODE_WIDTH = 92
+const NODE_HEIGHT = 54
+const MIN_NODE_SPACING = 150
+const BASE_RING_RADIUS = 210
+const COMPONENT_PADDING = 220
+
 interface GraphCallbacks {
   onNodeSelect: (nodeId: string) => void
   onEdgeSelect: (edgeId: string) => void
@@ -54,8 +60,8 @@ export function createGraphView(container: HTMLElement, callbacks: GraphCallback
           'text-max-width': 72,
           'text-halign': 'center',
           'text-valign': 'center',
-          width: 92,
-          height: 54,
+          width: NODE_WIDTH,
+          height: NODE_HEIGHT,
           'overlay-opacity': 0,
         },
       },
@@ -150,8 +156,10 @@ export function createGraphView(container: HTMLElement, callbacks: GraphCallback
       positions.set(node.id(), { x: position.x, y: position.y })
     })
 
+    const seedPositions = buildSeedPositions(graph)
+
     const nodeElements: ElementDefinition[] = graph.characters.map(character => {
-      const position = positions.get(character.id)
+      const position = positions.get(character.id) ?? seedPositions.get(character.id)
 
       return {
         group: 'nodes',
@@ -193,25 +201,25 @@ export function createGraphView(container: HTMLElement, callbacks: GraphCallback
             name: 'cose',
             animate: false,
             fit: false,
-            randomize: true,
+            randomize: false,
             padding: 120,
             nodeRepulsion(node) {
-              return 240000 + node.degree(false) * 32000
+              return 320000 + node.degree(false) * 42000
             },
             idealEdgeLength(edge) {
               const weight = Number(edge.data('weight')) || 1
-              return 180 + Math.max(0, 5 - weight) * 24
+              return 210 + Math.max(0, 5 - weight) * 28
             },
             edgeElasticity(edge) {
               const weight = Number(edge.data('weight')) || 1
-              return 80 + weight * 16
+              return 90 + weight * 18
             },
-            gravity: 0.12,
-            componentSpacing: 260,
+            gravity: 0.08,
+            componentSpacing: 320,
             nestingFactor: 0.7,
-            numIter: 3000,
-            initialTemp: 1200,
-            coolingFactor: 0.955,
+            numIter: 3200,
+            initialTemp: 900,
+            coolingFactor: 0.96,
           }
     )
 
@@ -333,4 +341,210 @@ function toCyLineStyle(line: 'solid' | 'dashed' | 'dotted' | undefined): 'solid'
   }
 
   return 'solid'
+}
+
+function buildSeedPositions(graph: VisibleGraph): Map<string, { x: number; y: number }> {
+  const adjacency = new Map<string, Set<string>>()
+
+  graph.characters.forEach(character => {
+    adjacency.set(character.id, new Set())
+  })
+
+  graph.relationships.forEach(relationship => {
+    adjacency.get(relationship.source)?.add(relationship.target)
+    adjacency.get(relationship.target)?.add(relationship.source)
+  })
+
+  const components = getConnectedComponents(graph.characters.map(character => character.id), adjacency)
+  const componentLayouts = components
+    .map(characterIds => layoutComponent(characterIds, adjacency))
+    .sort((left, right) => right.radius - left.radius)
+
+  if (componentLayouts.length === 1) {
+    return componentLayouts[0]?.positions ?? new Map()
+  }
+
+  const positioned = new Map<string, { x: number; y: number }>()
+  const totalSpan = componentLayouts.reduce((sum, component) => sum + component.radius * 2 + COMPONENT_PADDING, 0)
+  const orbitRadius = Math.max(520, totalSpan / (2 * Math.PI))
+
+  componentLayouts.forEach((component, index) => {
+    const angle = (-Math.PI / 2) + (index * 2 * Math.PI) / componentLayouts.length
+    const offsetX = Math.cos(angle) * orbitRadius
+    const offsetY = Math.sin(angle) * orbitRadius
+
+    component.positions.forEach((position, nodeId) => {
+      positioned.set(nodeId, {
+        x: position.x + offsetX,
+        y: position.y + offsetY,
+      })
+    })
+  })
+
+  return positioned
+}
+
+function getConnectedComponents(nodeIds: string[], adjacency: Map<string, Set<string>>): string[][] {
+  const remaining = new Set(nodeIds)
+  const components: string[][] = []
+
+  while (remaining.size > 0) {
+    const start = remaining.values().next().value as string
+    const queue = [start]
+    const component: string[] = []
+    remaining.delete(start)
+
+    while (queue.length > 0) {
+      const current = queue.shift()
+
+      if (!current) {
+        continue
+      }
+
+      component.push(current)
+
+      adjacency.get(current)?.forEach(neighbor => {
+        if (!remaining.has(neighbor)) {
+          return
+        }
+
+        remaining.delete(neighbor)
+        queue.push(neighbor)
+      })
+    }
+
+    components.push(component)
+  }
+
+  return components.sort((left, right) => right.length - left.length)
+}
+
+function layoutComponent(characterIds: string[], adjacency: Map<string, Set<string>>): {
+  positions: Map<string, { x: number; y: number }>
+  radius: number
+} {
+  const positions = new Map<string, { x: number; y: number }>()
+
+  if (characterIds.length === 0) {
+    return { positions, radius: 0 }
+  }
+
+  if (characterIds.length === 1) {
+    positions.set(characterIds[0], { x: 0, y: 0 })
+    return { positions, radius: BASE_RING_RADIUS / 2 }
+  }
+
+  const rootId = [...characterIds].sort((left, right) => {
+    const degreeDiff = (adjacency.get(right)?.size ?? 0) - (adjacency.get(left)?.size ?? 0)
+    return degreeDiff || left.localeCompare(right)
+  })[0]
+
+  const levels = assignLevels(rootId, adjacency)
+  const rings = new Map<number, string[]>()
+
+  characterIds.forEach(nodeId => {
+    const level = levels.get(nodeId) ?? 0
+    const ring = rings.get(level) ?? []
+    ring.push(nodeId)
+    rings.set(level, ring)
+  })
+
+  positions.set(rootId, { x: 0, y: 0 })
+
+  let maxRadius = 0
+  const levelEntries = [...rings.entries()].sort((left, right) => left[0] - right[0])
+
+  levelEntries.forEach(([level, ringNodes]) => {
+    if (level === 0) {
+      return
+    }
+
+    const orderedNodes = orderRingNodes(ringNodes, adjacency, positions)
+    const requiredRadius = (orderedNodes.length * MIN_NODE_SPACING) / (2 * Math.PI)
+    const radius = Math.max(level * BASE_RING_RADIUS, requiredRadius)
+    const angleStep = (2 * Math.PI) / orderedNodes.length
+    const angleOffset = level % 2 === 0 ? angleStep / 2 : 0
+
+    orderedNodes.forEach((nodeId, index) => {
+      const angle = angleOffset + index * angleStep
+      positions.set(nodeId, {
+        x: Math.cos(angle) * radius,
+        y: Math.sin(angle) * radius,
+      })
+    })
+
+    maxRadius = Math.max(maxRadius, radius)
+  })
+
+  return {
+    positions,
+    radius: maxRadius + Math.max(NODE_WIDTH, NODE_HEIGHT),
+  }
+}
+
+function assignLevels(rootId: string, adjacency: Map<string, Set<string>>): Map<string, number> {
+  const levels = new Map<string, number>([[rootId, 0]])
+  const queue = [rootId]
+
+  while (queue.length > 0) {
+    const current = queue.shift()
+
+    if (!current) {
+      continue
+    }
+
+    const nextLevel = (levels.get(current) ?? 0) + 1
+
+    adjacency.get(current)?.forEach(neighbor => {
+      if (levels.has(neighbor)) {
+        return
+      }
+
+      levels.set(neighbor, nextLevel)
+      queue.push(neighbor)
+    })
+  }
+
+  return levels
+}
+
+function orderRingNodes(
+  nodeIds: string[],
+  adjacency: Map<string, Set<string>>,
+  positions: Map<string, { x: number; y: number }>
+): string[] {
+  return [...nodeIds].sort((left, right) => {
+    const angleDiff = getAnchorAngle(left, adjacency, positions) - getAnchorAngle(right, adjacency, positions)
+
+    if (Math.abs(angleDiff) > 0.0001) {
+      return angleDiff
+    }
+
+    const degreeDiff = (adjacency.get(right)?.size ?? 0) - (adjacency.get(left)?.size ?? 0)
+    return degreeDiff || left.localeCompare(right)
+  })
+}
+
+function getAnchorAngle(
+  nodeId: string,
+  adjacency: Map<string, Set<string>>,
+  positions: Map<string, { x: number; y: number }>
+): number {
+  const anchors = [...(adjacency.get(nodeId) ?? [])]
+    .map(neighborId => positions.get(neighborId))
+    .filter((position): position is { x: number; y: number } => Boolean(position))
+
+  if (anchors.length === 0) {
+    return Number.POSITIVE_INFINITY
+  }
+
+  const center = anchors.reduce(
+    (result, position) => ({
+      x: result.x + position.x,
+      y: result.y + position.y,
+    }),
+    { x: 0, y: 0 }
+  )
+
+  return Math.atan2(center.y / anchors.length, center.x / anchors.length)
 }
