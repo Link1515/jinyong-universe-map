@@ -237,7 +237,6 @@ export function createGraphView(container: HTMLElement, callbacks: GraphCallback
     cy.elements().removeClass('is-highlighted is-selected is-muted')
 
     if (!nodeId) {
-      fitGraph(cy)
       return
     }
 
