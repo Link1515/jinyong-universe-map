@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import { icons as lucideIcons } from '@iconify-json/lucide'
+import { Icon, addCollection } from '@iconify/vue'
 import { computed } from 'vue'
 import { getRelationshipType } from '../utils/graphData'
 import { translateGender } from '../utils/formatters'
 import type { Character, DetailSelection, Novel, Relationship, RelationshipWithType } from '../types'
+
+addCollection(lucideIcons)
 
 const props = defineProps<{
   detailOpen: boolean
@@ -26,13 +30,12 @@ const panelTitle = computed(() => props.selectedNovel?.name ?? '人物圖譜')
 
 <template>
   <aside class="overlay-panel overlay-panel-detail" :class="{ 'is-collapsed': !detailOpen }">
-    <button type="button" class="panel detail-handle" :aria-expanded="detailOpen" @click="emit('toggleOpen')">
-      <span>詳細資訊</span>
+    <button type="button" class="panel detail-handle" :aria-expanded="detailOpen" :aria-label="detailOpen ? '收起詳細資訊' : '展開詳細資訊'" @click="emit('toggleOpen')">
+      <Icon :icon="detailOpen ? 'lucide:panel-right-close' : 'lucide:panel-right-open'" class="detail-handle-icon" />
     </button>
     <section class="panel detail-drawer-panel">
       <div class="panel-heading">
         <h2>詳細資訊</h2>
-        <button type="button" class="ghost-button" @click="emit('close')">收起</button>
       </div>
       <div class="detail-content">
         <article v-if="selectedCharacter" class="detail-card">

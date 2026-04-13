@@ -9,6 +9,8 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@iconify-json/lucide": "^1.2.102",
+    "@iconify/vue": "^5.0.0",
     "cytoscape": "^3.33.2",
     "vue": "^3.5.22"
   },

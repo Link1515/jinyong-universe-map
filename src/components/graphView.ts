@@ -16,6 +16,9 @@ interface GraphViewApi {
   update: (graph: VisibleGraph) => void
   highlightNode: (nodeId: string | null) => void
   setSelection: (nodeId: string | null, edgeId: string | null) => void
+  zoomIn: () => void
+  zoomOut: () => void
+  fit: () => void
   destroy: () => void
 }
 
@@ -27,17 +30,6 @@ export function createGraphView(container: HTMLElement, callbacks: GraphCallback
   const root = document.createElement('div')
   root.className = 'graph-shell'
   container.append(root)
-
-  const zoomControls = document.createElement('div')
-  zoomControls.className = 'graph-zoom-controls'
-  zoomControls.innerHTML = `
-    <button type="button" class="graph-zoom-button" data-zoom-action="in" aria-label="放大圖譜">+</button>
-    <button type="button" class="graph-zoom-button graph-zoom-button-reset" data-zoom-action="fit" aria-label="顯示整張圖">
-      <span aria-hidden="true">⤢</span>
-    </button>
-    <button type="button" class="graph-zoom-button" data-zoom-action="out" aria-label="縮小圖譜">-</button>
-  `
-  container.append(zoomControls)
 
   const cy = cytoscape({
     container: root,
@@ -145,18 +137,6 @@ export function createGraphView(container: HTMLElement, callbacks: GraphCallback
   })
 
   resizeObserver.observe(container)
-
-  zoomControls.querySelectorAll<HTMLElement>('[data-zoom-action]').forEach(element => {
-    element.addEventListener('click', () => {
-      if (element.dataset.zoomAction === 'fit') {
-        fitGraph(cy)
-        return
-      }
-
-      const action = element.dataset.zoomAction === 'in' ? zoomStep : 1 / zoomStep
-      zoomByStep(cy, action)
-    })
-  })
 
   function update(graph: VisibleGraph): void {
     cy.nodes().forEach(node => {
@@ -290,13 +270,21 @@ export function createGraphView(container: HTMLElement, callbacks: GraphCallback
     resizeObserver.disconnect()
     cy.destroy()
     root.remove()
-    zoomControls.remove()
   }
 
   return {
     update,
     highlightNode,
     setSelection,
+    zoomIn() {
+      zoomByStep(cy, zoomStep)
+    },
+    zoomOut() {
+      zoomByStep(cy, 1 / zoomStep)
+    },
+    fit() {
+      fitGraph(cy)
+    },
     destroy,
   }
 }

@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { icons as lucideIcons } from '@iconify-json/lucide'
+import { Icon, addCollection } from '@iconify/vue'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { createGraphView } from './graphView'
 import type { DetailSelection, VisibleGraph } from '../types'
+
+addCollection(lucideIcons)
 
 const props = defineProps<{
   graph: VisibleGraph
@@ -77,8 +81,33 @@ function syncSelection(): void {
 function syncHighlight(): void {
   graphView?.highlightNode(props.highlightedNodeId)
 }
+
+function zoomIn(): void {
+  graphView?.zoomIn()
+}
+
+function zoomOut(): void {
+  graphView?.zoomOut()
+}
+
+function fitGraph(): void {
+  graphView?.fit()
+}
 </script>
 
 <template>
-  <div ref="containerRef" class="graph-root"></div>
+  <div class="graph-root">
+    <div ref="containerRef" class="graph-shell-host"></div>
+    <div class="graph-zoom-controls">
+      <button type="button" class="graph-zoom-button" aria-label="放大圖譜" @click="zoomIn">
+        <Icon icon="lucide:zoom-in" class="graph-zoom-icon" />
+      </button>
+      <button type="button" class="graph-zoom-button graph-zoom-button-reset" aria-label="顯示整張圖" @click="fitGraph">
+        <Icon icon="lucide:maximize-2" class="graph-zoom-icon graph-zoom-icon-reset" />
+      </button>
+      <button type="button" class="graph-zoom-button" aria-label="縮小圖譜" @click="zoomOut">
+        <Icon icon="lucide:zoom-out" class="graph-zoom-icon" />
+      </button>
+    </div>
+  </div>
 </template>

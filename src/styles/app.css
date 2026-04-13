@@ -47,6 +47,11 @@ input {
   inset: 0;
 }
 
+.graph-shell-host {
+  width: 100%;
+  height: 100%;
+}
+
 .graph-shell {
   width: 100%;
   height: 100%;
@@ -77,8 +82,9 @@ input {
   box-shadow: 0 12px 24px rgba(54, 34, 17, 0.12);
   color: var(--text);
   cursor: pointer;
-  font-size: 1.5rem;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition:
     transform 140ms ease,
     border-color 140ms ease,
@@ -100,14 +106,15 @@ input {
 }
 
 .graph-zoom-button-reset {
-  font-size: 1rem;
-  font-weight: 700;
+  background: rgba(249, 243, 232, 0.96);
 }
 
-.graph-zoom-button-reset span {
-  display: block;
-  font-size: 1.15rem;
-  line-height: 1;
+.graph-zoom-icon {
+  font-size: 1.3rem;
+}
+
+.graph-zoom-icon-reset {
+  font-size: 1.1rem;
 }
 
 .panel {
@@ -172,9 +179,7 @@ input {
 }
 
 .status-minimize-icon {
-  font-size: 0.86rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 1rem;
 }
 
 .overlay-panel-status:not(.is-minimized) .status-minimize-button {
@@ -610,9 +615,8 @@ h2 {
     padding: 12px 14px;
   }
 
-  .detail-handle span {
-    writing-mode: horizontal-tb;
-    letter-spacing: 0.08em;
+  .detail-handle-icon {
+    font-size: 1rem;
   }
 
   .detail-drawer-panel {
@@ -651,20 +655,32 @@ h2 {
 
 .detail-handle {
   display: flex;
-  min-height: 132px;
+  min-height: 48px;
   align-items: center;
   justify-content: center;
   width: 48px;
-  padding: 12px 8px;
+  height: 48px;
+  padding: 0;
   border-radius: 18px;
   cursor: pointer;
 }
 
-.detail-handle span {
-  writing-mode: vertical-rl;
-  letter-spacing: 0.18em;
-  font-size: 0.82rem;
+.detail-handle-icon {
+  font-size: 1.1rem;
   color: var(--muted);
+}
+
+.detail-close-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+}
+
+.detail-close-icon {
+  font-size: 1rem;
 }
 
 .detail-drawer-panel {

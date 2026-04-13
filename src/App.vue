@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { icons as lucideIcons } from '@iconify-json/lucide'
+import { Icon, addCollection } from '@iconify/vue'
 import { computed, ref, watch } from 'vue'
 import DetailDrawer from './components/DetailDrawer.vue'
 import FilterMenu from './components/FilterMenu.vue'
@@ -9,6 +11,8 @@ import SearchMenu from './components/SearchMenu.vue'
 import ToolDock from './components/ToolDock.vue'
 import { useUniverseMap } from './composables/useUniverseMap'
 import type { ActiveMenu } from './types'
+
+addCollection(lucideIcons)
 
 const {
   state,
@@ -97,7 +101,7 @@ watch(graph, () => {
         :aria-label="statusMinimized ? '展開操作面板' : '最小化操作面板'"
         @click="toggleStatusMinimized"
       >
-        <span class="status-minimize-icon">{{ statusMinimized ? '展' : '收' }}</span>
+        <Icon :icon="statusMinimized ? 'lucide:panel-top-open' : 'lucide:panel-top-close'" class="status-minimize-icon" />
       </button>
 
       <template v-if="!statusMinimized">
