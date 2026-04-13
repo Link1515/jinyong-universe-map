@@ -20,6 +20,69 @@
 
 ---
 
+# 目前專案結構
+
+目前程式為 **Vue 3 + TypeScript + Vite + Cytoscape** 的單頁前端，尚未拆成多頁或後端服務。  
+下次會話請優先依照下面導航找檔案，避免重新掃整個 repo。
+
+## 根目錄
+
+- `src/`：主要應用程式碼
+- `AGENTS.md`：專案規則與導航說明
+- `package.json`：腳本與依賴
+- `vite.config.ts`：Vite 設定
+- `tsconfig.json`：TypeScript 設定
+- `index.html`：Vite 入口 HTML
+
+## src 目錄
+
+- `src/main.ts`：Vue 掛載入口
+- `src/App.vue`：主畫面組裝，串接圖譜、工具面板、側邊詳情抽屜
+- `src/styles/app.css`：主要樣式
+- `src/types.ts`：核心型別定義，含 `Novel`、`Character`、`Relationship`、`RelationshipType`、`VisibleGraph`
+
+## 資料層
+
+- `src/data/index.ts`：資料匯出入口
+- `src/data/novels.ts`：作品清單
+- `src/data/relationshipTypes.ts`：關係類型與視覺設定
+- `src/data/universe.ts`：彙整整體人物與關係資料
+- `src/data/works/*.ts`：各作品的角色與關係來源資料，新增或修正人物資料時優先看這裡
+
+## 狀態與資料處理
+
+- `src/composables/useUniverseMap.ts`：主狀態中心，負責作品切換、搜尋、篩選、選取人物/關係、詳情面板開關
+- `src/utils/graphData.ts`：圖譜可見資料計算，含作品篩選、關係類型篩選、搜尋
+- `src/utils/formatters.ts`：顯示用格式化工具
+
+## 視圖與互動元件
+
+- `src/components/GraphCanvas.vue`：圖譜畫布 Vue 包裝層
+- `src/components/graphView.ts`：Cytoscape 實作本體，含節點/邊樣式、佈局、縮放、選取、高亮
+- `src/components/DetailDrawer.vue`：人物或關係詳情抽屜
+- `src/components/ToolDock.vue`：上方工具列入口
+- `src/components/NovelMenu.vue`：作品切換
+- `src/components/SearchMenu.vue`：人物搜尋
+- `src/components/FilterMenu.vue`：關係類型篩選
+- `src/components/LegendMenu.vue`：圖例說明
+
+## 任務對應檔案速查
+
+- 要改「作品切換 / 搜尋 / 篩選 / 詳情開關」：先看 `src/composables/useUniverseMap.ts`，再看 `src/App.vue`
+- 要改「圖譜佈局 / 節點邊樣式 / 點擊事件 / 縮放」：先看 `src/components/graphView.ts`
+- 要改「圖譜畫面外觀或面板排版」：先看 `src/styles/app.css` 與對應 `.vue` 元件
+- 要改「人物、關係、作品資料」：先看 `src/data/works/*.ts`、`src/data/novels.ts`、`src/data/relationshipTypes.ts`
+- 要改「資料模型或型別欄位」：先看 `src/types.ts`，再同步檢查 `src/data/*` 與 `src/composables/useUniverseMap.ts`
+- 要改「圖譜篩選結果或搜尋邏輯」：先看 `src/utils/graphData.ts`
+
+## 目前實作邊界
+
+- 已有單作品視圖、人物搜尋、關係篩選、人物/關係詳情、圖例與基本圖譜互動
+- 目前資料是靜態 TypeScript 模組，不是 API
+- 目前沒有獨立測試檔，最小驗證優先使用 `npm run typecheck`
+
+---
+
 # 作品範圍
 
 必須涵蓋以下金庸作品中的**主要角色**：
