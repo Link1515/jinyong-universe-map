@@ -93,53 +93,67 @@ watch(graph, () => {
   <main class="workspace-canvas">
     <GraphCanvas :graph="graph" :detail="state.detail" :highlighted-node-id="highlightedNodeId" @node-select="selectCharacter" @edge-select="selectRelationship" />
 
-    <header class="panel overlay-panel overlay-panel-status" :class="{ 'is-minimized': statusMinimized }">
-      <button
-        type="button"
-        class="status-minimize-button"
-        :aria-expanded="!statusMinimized"
-        :aria-label="statusMinimized ? '展開操作面板' : '最小化操作面板'"
-        @click="toggleStatusMinimized"
-      >
-        <Icon :icon="statusMinimized ? 'lucide:panel-top-open' : 'lucide:panel-top-close'" class="status-minimize-icon" />
-      </button>
+    <Transition name="status-panel" mode="out-in">
+      <header v-if="!statusMinimized" key="expanded" class="panel overlay-panel overlay-panel-status">
+        <button
+          type="button"
+          class="status-minimize-button"
+          aria-expanded="true"
+          aria-label="最小化操作面板"
+          @click="toggleStatusMinimized"
+        >
+          <Icon icon="lucide:panel-top-close" class="status-minimize-icon" />
+        </button>
 
-      <template v-if="!statusMinimized">
-        <div class="status-head">
-          <div>
-            <p class="eyebrow">Jin Yong Universe Map</p>
-            <h1>金庸人物宇宙圖譜</h1>
+        <div class="status-panel-body">
+          <div class="status-head">
+            <div>
+              <p class="eyebrow">Jin Yong Universe Map</p>
+              <h1>金庸人物宇宙圖譜</h1>
+            </div>
+            <div class="status-meta">
+              <p class="graph-title">{{ graphTitle }}</p>
+            </div>
           </div>
-          <div class="status-meta">
-            <p class="graph-title">{{ graphTitle }}</p>
-          </div>
+          <section class="overlay-panel-tools">
+            <div class="overlay-tools-bar">
+              <ToolDock :active-menu="state.activeMenu" :selected-novel="selectedNovel" :active-filter-count="activeFilterCount" :search-query="state.searchQuery" @toggle-menu="handleToolToggle" />
+            </div>
+
+            <div v-if="state.activeMenu" class="panel menu-panel">
+              <NovelMenu v-if="state.activeMenu === 'novels'" :novels="novels" :selected-novel-id="state.selectedNovelId" @select-novel="handleMenuEmit('selectNovel', $event)" />
+              <SearchMenu
+                v-else-if="state.activeMenu === 'search'"
+                :query="state.searchQuery"
+                :matches="searchMatches"
+                @update-query="handleMenuEmit('updateQuery', $event)"
+                @select-character="handleMenuEmit('selectCharacter', $event)"
+              />
+              <FilterMenu
+                v-else-if="state.activeMenu === 'filters'"
+                :relationship-types="relationshipTypes"
+                :active-type-ids="state.activeTypeIds"
+                @toggle-type="handleMenuEmit('toggleType', $event)"
+                @reset="handleMenuEmit('reset')"
+              />
+              <LegendMenu v-else-if="state.activeMenu === 'legend'" :relationship-types="relationshipTypes" />
+            </div>
+          </section>
         </div>
-        <section class="overlay-panel-tools">
-          <div class="overlay-tools-bar">
-            <ToolDock :active-menu="state.activeMenu" :selected-novel="selectedNovel" :active-filter-count="activeFilterCount" :search-query="state.searchQuery" @toggle-menu="handleToolToggle" />
-          </div>
+      </header>
 
-          <div v-if="state.activeMenu" class="panel menu-panel">
-            <NovelMenu v-if="state.activeMenu === 'novels'" :novels="novels" :selected-novel-id="state.selectedNovelId" @select-novel="handleMenuEmit('selectNovel', $event)" />
-            <SearchMenu
-              v-else-if="state.activeMenu === 'search'"
-              :query="state.searchQuery"
-              :matches="searchMatches"
-              @update-query="handleMenuEmit('updateQuery', $event)"
-              @select-character="handleMenuEmit('selectCharacter', $event)"
-            />
-            <FilterMenu
-              v-else-if="state.activeMenu === 'filters'"
-              :relationship-types="relationshipTypes"
-              :active-type-ids="state.activeTypeIds"
-              @toggle-type="handleMenuEmit('toggleType', $event)"
-              @reset="handleMenuEmit('reset')"
-            />
-            <LegendMenu v-else-if="state.activeMenu === 'legend'" :relationship-types="relationshipTypes" />
-          </div>
-        </section>
-      </template>
-    </header>
+      <header v-else key="minimized" class="panel overlay-panel overlay-panel-status is-minimized">
+        <button
+          type="button"
+          class="status-minimize-button"
+          aria-expanded="false"
+          aria-label="展開操作面板"
+          @click="toggleStatusMinimized"
+        >
+          <Icon icon="lucide:panel-top-open" class="status-minimize-icon" />
+        </button>
+      </header>
+    </Transition>
 
     <div>
       <DetailDrawer

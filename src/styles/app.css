@@ -136,12 +136,6 @@ input {
   width: min(720px, calc(100vw - var(--detail-panel-width) - 72px));
   min-width: 320px;
   padding: 18px;
-  transition:
-    width 180ms ease,
-    min-width 180ms ease,
-    padding 180ms ease,
-    border-radius 180ms ease,
-    box-shadow 180ms ease;
 }
 
 .overlay-panel-status.is-minimized {
@@ -188,6 +182,25 @@ input {
   padding-right: 58px;
 }
 
+.status-panel-body {
+  display: grid;
+}
+
+.status-panel-enter-active,
+.status-panel-leave-active {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    filter 180ms ease;
+}
+
+.status-panel-enter-from,
+.status-panel-leave-to {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  filter: blur(4px);
+}
+
 .overlay-panel-tools {
   display: flex;
   flex-direction: column;
@@ -202,7 +215,10 @@ input {
   align-items: flex-start;
   gap: 10px;
   max-height: calc(100vh - 36px);
-  transition: transform 180ms ease;
+}
+
+.detail-panel-collapsed {
+  gap: 0;
 }
 
 .status-head,
@@ -685,10 +701,6 @@ h2 {
   overflow: auto;
 }
 
-.overlay-panel-detail.is-collapsed .detail-drawer-panel {
-  display: none;
-}
-
-.overlay-panel-detail:not(.is-collapsed) .detail-handle {
+.overlay-panel-detail .detail-handle {
   opacity: 0.92;
 }
