@@ -136,6 +136,9 @@ input {
   width: min(720px, calc(100vw - var(--detail-panel-width) - 72px));
   min-width: 320px;
   padding: 18px;
+  background: rgba(255, 248, 238, 0.94);
+  border-color: rgba(91, 68, 40, 0.22);
+  box-shadow: 0 14px 28px rgba(54, 34, 17, 0.1);
 }
 
 .overlay-panel-status.is-minimized {
@@ -295,7 +298,9 @@ h2 {
   gap: 2px;
   padding: 4px;
   border-radius: 18px;
-  background: rgba(255, 252, 247, 0.82);
+  background: rgba(255, 251, 246, 0.72);
+  border: 1px solid rgba(91, 68, 40, 0.12);
+  box-shadow: none;
 }
 
 .tool-button {
@@ -316,8 +321,7 @@ h2 {
   transition:
     transform 140ms ease,
     border-color 140ms ease,
-    background 140ms ease,
-    box-shadow 140ms ease;
+    background 140ms ease;
 }
 
 .tool-button span {
@@ -332,7 +336,6 @@ h2 {
   transform: translateY(-1px);
   border-color: rgba(140, 59, 42, 0.32);
   background: rgba(255, 248, 239, 0.96);
-  box-shadow: 0 8px 16px rgba(95, 36, 24, 0.08);
 }
 
 .tool-badge {
@@ -353,12 +356,16 @@ h2 {
   width: min(540px, calc(100vw - var(--detail-panel-width) - 72px));
   max-height: min(58vh, 560px);
   overflow: auto;
+  background: rgba(255, 250, 243, 0.9);
+  border-color: rgba(91, 68, 40, 0.16);
+  box-shadow: none;
 }
 
 .menu-section {
   display: grid;
   gap: 14px;
   padding: 16px 18px;
+  background: transparent;
 }
 
 .novel-tabs,
@@ -388,7 +395,6 @@ h2 {
   transition:
     transform 140ms ease,
     border-color 140ms ease,
-    box-shadow 140ms ease,
     background 140ms ease;
 }
 
@@ -405,7 +411,7 @@ h2 {
 .relation-item:hover {
   transform: translateY(-1px);
   border-color: rgba(140, 59, 42, 0.35);
-  box-shadow: 0 10px 16px rgba(95, 36, 24, 0.08);
+  background: rgba(255, 248, 239, 0.96);
 }
 
 .novel-tab.is-active,
@@ -528,7 +534,7 @@ h2 {
 }
 
 .overlay-panel-status.is-expanded {
-  box-shadow: 0 28px 72px rgba(54, 34, 17, 0.16);
+  box-shadow: 0 16px 32px rgba(54, 34, 17, 0.12);
 }
 
 .overlay-tools-bar {
