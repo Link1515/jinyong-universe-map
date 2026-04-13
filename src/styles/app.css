@@ -7,6 +7,7 @@
   --muted: #7a6650;
   --accent: #8c3b2a;
   --shadow: 0 24px 64px rgba(54, 34, 17, 0.14);
+  --detail-panel-width: 380px;
   --serif: 'Noto Serif TC', 'PMingLiU', serif;
   --sans: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
 }
@@ -114,16 +115,73 @@ input {
 .overlay-panel-status {
   top: 18px;
   left: 18px;
-  right: 430px;
-  padding: 16px 18px;
+  width: min(720px, calc(100vw - var(--detail-panel-width) - 72px));
+  min-width: 320px;
+  padding: 18px;
+  transition:
+    width 180ms ease,
+    min-width 180ms ease,
+    padding 180ms ease,
+    border-radius 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.overlay-panel-status.is-minimized {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  min-width: 58px;
+  padding: 8px;
+  border-radius: 18px;
+}
+
+.status-minimize-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 252, 247, 0.92);
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.status-minimize-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(140, 59, 42, 0.35);
+  background: rgba(255, 248, 239, 0.96);
+  box-shadow: 0 8px 16px rgba(95, 36, 24, 0.08);
+}
+
+.status-minimize-icon {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.overlay-panel-status:not(.is-minimized) .status-minimize-button {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+
+.overlay-panel-status:not(.is-minimized) .status-head,
+.overlay-panel-status:not(.is-minimized) .overlay-panel-tools {
+  padding-right: 58px;
 }
 
 .overlay-panel-tools {
-  top: 130px;
-  left: 18px;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   gap: 12px;
+  margin-top: 14px;
 }
 
 .overlay-panel-detail {
@@ -141,6 +199,12 @@ input {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
+}
+
+.status-meta {
+  display: flex;
+  align-items: flex-start;
   gap: 12px;
 }
 
@@ -185,37 +249,43 @@ h2 {
 }
 
 .graph-title {
-  max-width: 300px;
+  max-width: 260px;
   margin: 0;
   font-size: 0.92rem;
   line-height: 1.5;
-  text-align: right;
+  text-align: left;
 }
 
 .graph-hint {
-  margin: 10px 0 0;
+  margin: 0;
   font-size: 0.88rem;
+  line-height: 1.6;
 }
 
 .tool-dock {
-  display: grid;
-  gap: 10px;
-  width: 88px;
-  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 18px;
+  background: rgba(255, 252, 247, 0.82);
 }
 
 .tool-button {
-  display: grid;
-  gap: 5px;
-  width: 100%;
-  min-height: 72px;
-  padding: 12px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: none;
+  flex: none;
+  padding: 11px 16px;
   border: 1px solid transparent;
-  border-radius: 18px;
-  background: rgba(255, 252, 247, 0.7);
+  border-radius: 14px;
+  background: transparent;
   color: var(--text);
   cursor: pointer;
-  text-align: left;
+  text-align: center;
   transition:
     transform 140ms ease,
     border-color 140ms ease,
@@ -224,26 +294,37 @@ h2 {
 }
 
 .tool-button span {
-  color: var(--muted);
-  font-size: 0.8rem;
-}
-
-.tool-button strong {
+  color: inherit;
   font-size: 0.92rem;
-  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .tool-button:hover,
 .tool-button.is-active {
   transform: translateY(-1px);
   border-color: rgba(140, 59, 42, 0.32);
-  background: rgba(255, 248, 239, 0.92);
-  box-shadow: 0 10px 18px rgba(95, 36, 24, 0.1);
+  background: rgba(255, 248, 239, 0.96);
+  box-shadow: 0 8px 16px rgba(95, 36, 24, 0.08);
+}
+
+.tool-badge {
+  max-width: 120px;
+  overflow: hidden;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(140, 59, 42, 0.12);
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-style: normal;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .menu-panel {
-  width: min(360px, calc(100vw - 142px));
-  max-height: calc(100vh - 166px);
+  width: min(540px, calc(100vw - var(--detail-panel-width) - 72px));
+  max-height: min(58vh, 560px);
   overflow: auto;
 }
 
@@ -419,9 +500,25 @@ h2 {
   line-height: 1.7;
 }
 
+.overlay-panel-status.is-expanded {
+  box-shadow: 0 28px 72px rgba(54, 34, 17, 0.16);
+}
+
+.overlay-tools-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.controls-toggle {
+  flex: none;
+  white-space: nowrap;
+}
+
 @media (max-width: 1180px) {
   .overlay-panel-status {
-    right: 360px;
+    width: min(680px, calc(100vw - 388px));
   }
 
   .overlay-panel-detail {
@@ -453,17 +550,22 @@ h2 {
   .overlay-panel-status {
     margin-bottom: 12px;
     padding: 14px 16px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .overlay-panel-status.is-minimized {
+    width: 58px;
+    min-width: 58px;
+    padding: 8px;
   }
 
   .overlay-panel-tools {
-    display: grid;
-    gap: 12px;
-    margin-bottom: 12px;
+    margin-top: 12px;
   }
 
   .tool-dock {
     width: 100%;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .menu-panel {
@@ -477,6 +579,11 @@ h2 {
   }
 
   .status-head {
+    flex-direction: column;
+  }
+
+  .status-meta {
+    width: 100%;
     flex-direction: column;
   }
 
@@ -506,13 +613,31 @@ h2 {
 
 @media (max-width: 640px) {
   .tool-dock {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    justify-content: space-between;
+    overflow-x: auto;
   }
 
   .detail-grid {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 760px) {
+  .overlay-tools-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .controls-toggle {
+    width: 100%;
+  }
+
+  .tool-button {
+    justify-content: flex-start;
+  }
+}
+
 .detail-handle {
   display: flex;
   min-height: 132px;
@@ -532,7 +657,7 @@ h2 {
 }
 
 .detail-drawer-panel {
-  width: min(380px, calc(100vw - 94px));
+  width: min(var(--detail-panel-width), calc(100vw - 94px));
   max-height: calc(100vh - 36px);
   padding: 18px;
   overflow: auto;

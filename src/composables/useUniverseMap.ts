@@ -58,7 +58,6 @@ export function useUniverseMap() {
   function selectNovel(novelId: string): void {
     state.selectedNovelId = novelId
     state.searchQuery = ''
-    state.activeMenu = ''
     state.detailOpen = false
     state.detail = { kind: 'none' }
   }
@@ -99,7 +98,6 @@ export function useUniverseMap() {
     }
 
     state.detail = { kind: 'character', id: characterId }
-    state.activeMenu = ''
     state.detailOpen = true
   }
 
@@ -111,7 +109,6 @@ export function useUniverseMap() {
     }
 
     state.detail = { kind: 'relationship', id: relationshipId }
-    state.activeMenu = ''
     state.detailOpen = true
   }
 

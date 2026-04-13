@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import DetailDrawer from './components/DetailDrawer.vue'
 import FilterMenu from './components/FilterMenu.vue'
 import GraphCanvas from './components/GraphCanvas.vue'
@@ -8,6 +8,7 @@ import NovelMenu from './components/NovelMenu.vue'
 import SearchMenu from './components/SearchMenu.vue'
 import ToolDock from './components/ToolDock.vue'
 import { useUniverseMap } from './composables/useUniverseMap'
+import type { ActiveMenu } from './types'
 
 const {
   state,
@@ -25,7 +26,6 @@ const {
   detailCharacterRelationships,
   selectNovel,
   toggleMenu,
-  closeMenu,
   updateSearchQuery,
   toggleRelationshipType,
   resetRelationshipTypes,
@@ -36,8 +36,7 @@ const {
   ensureVisibleSelection,
 } = useUniverseMap()
 
-const toolsPanelRef = ref<HTMLElement | null>(null)
-const detailDrawerRef = ref<HTMLElement | null>(null)
+const statusMinimized = ref(false)
 
 const highlightedNodeId = computed(() => {
   if (state.activeMenu === 'search') {
@@ -50,19 +49,6 @@ const highlightedNodeId = computed(() => {
 
   return null
 })
-
-function handlePointerDown(event: PointerEvent): void {
-  const target = event.target
-  if (!(target instanceof Node)) {
-    return
-  }
-
-  if (toolsPanelRef.value?.contains(target) || detailDrawerRef.value?.contains(target)) {
-    return
-  }
-
-  closeMenu()
-}
 
 function handleMenuEmit(eventName: string, payload?: string): void {
   if (eventName === 'selectNovel' && payload) {
@@ -86,13 +72,13 @@ function handleMenuEmit(eventName: string, payload?: string): void {
   }
 }
 
-onMounted(() => {
-  document.addEventListener('pointerdown', handlePointerDown)
-})
+function handleToolToggle(menu: ActiveMenu): void {
+  toggleMenu(menu)
+}
 
-onBeforeUnmount(() => {
-  document.removeEventListener('pointerdown', handlePointerDown)
-})
+function toggleStatusMinimized(): void {
+  statusMinimized.value = !statusMinimized.value
+}
 
 watch(graph, () => {
   ensureVisibleSelection()
@@ -103,41 +89,55 @@ watch(graph, () => {
   <main class="workspace-canvas">
     <GraphCanvas :graph="graph" :detail="state.detail" :highlighted-node-id="highlightedNodeId" @node-select="selectCharacter" @edge-select="selectRelationship" />
 
-    <header class="panel overlay-panel overlay-panel-status">
-      <div class="status-head">
-        <div>
-          <p class="eyebrow">Jin Yong Universe Map</p>
-          <h1>金庸人物宇宙圖譜</h1>
+    <header class="panel overlay-panel overlay-panel-status" :class="{ 'is-minimized': statusMinimized }">
+      <button
+        type="button"
+        class="status-minimize-button"
+        :aria-expanded="!statusMinimized"
+        :aria-label="statusMinimized ? '展開操作面板' : '最小化操作面板'"
+        @click="toggleStatusMinimized"
+      >
+        <span class="status-minimize-icon">{{ statusMinimized ? '展' : '收' }}</span>
+      </button>
+
+      <template v-if="!statusMinimized">
+        <div class="status-head">
+          <div>
+            <p class="eyebrow">Jin Yong Universe Map</p>
+            <h1>金庸人物宇宙圖譜</h1>
+          </div>
+          <div class="status-meta">
+            <p class="graph-title">{{ graphTitle }}</p>
+          </div>
         </div>
-        <p class="graph-title">{{ graphTitle }}</p>
-      </div>
-      <p class="graph-hint">拖曳節點、滾輪或右下角按鈕縮放、拖動畫布平移。左側工具列按需打開選單。</p>
+        <section class="overlay-panel-tools">
+          <div class="overlay-tools-bar">
+            <ToolDock :active-menu="state.activeMenu" :selected-novel="selectedNovel" :active-filter-count="activeFilterCount" :search-query="state.searchQuery" @toggle-menu="handleToolToggle" />
+          </div>
+
+          <div v-if="state.activeMenu" class="panel menu-panel">
+            <NovelMenu v-if="state.activeMenu === 'novels'" :novels="novels" :selected-novel-id="state.selectedNovelId" @select-novel="handleMenuEmit('selectNovel', $event)" />
+            <SearchMenu
+              v-else-if="state.activeMenu === 'search'"
+              :query="state.searchQuery"
+              :matches="searchMatches"
+              @update-query="handleMenuEmit('updateQuery', $event)"
+              @select-character="handleMenuEmit('selectCharacter', $event)"
+            />
+            <FilterMenu
+              v-else-if="state.activeMenu === 'filters'"
+              :relationship-types="relationshipTypes"
+              :active-type-ids="state.activeTypeIds"
+              @toggle-type="handleMenuEmit('toggleType', $event)"
+              @reset="handleMenuEmit('reset')"
+            />
+            <LegendMenu v-else-if="state.activeMenu === 'legend'" :relationship-types="relationshipTypes" />
+          </div>
+        </section>
+      </template>
     </header>
 
-    <section ref="toolsPanelRef" class="overlay-panel overlay-panel-tools">
-      <ToolDock :active-menu="state.activeMenu" :selected-novel="selectedNovel" :active-filter-count="activeFilterCount" :search-query="state.searchQuery" @toggle-menu="toggleMenu" />
-
-      <div v-if="state.activeMenu" class="panel menu-panel">
-        <NovelMenu v-if="state.activeMenu === 'novels'" :novels="novels" :selected-novel-id="state.selectedNovelId" @select-novel="handleMenuEmit('selectNovel', $event)" />
-        <SearchMenu
-          v-else-if="state.activeMenu === 'search'"
-          :query="state.searchQuery"
-          :matches="searchMatches"
-          @update-query="handleMenuEmit('updateQuery', $event)"
-          @select-character="handleMenuEmit('selectCharacter', $event)"
-        />
-        <FilterMenu
-          v-else-if="state.activeMenu === 'filters'"
-          :relationship-types="relationshipTypes"
-          :active-type-ids="state.activeTypeIds"
-          @toggle-type="handleMenuEmit('toggleType', $event)"
-          @reset="handleMenuEmit('reset')"
-        />
-        <LegendMenu v-else-if="state.activeMenu === 'legend'" :relationship-types="relationshipTypes" />
-      </div>
-    </section>
-
-    <div ref="detailDrawerRef">
+    <div>
       <DetailDrawer
         :detail-open="state.detailOpen"
         :detail="state.detail"

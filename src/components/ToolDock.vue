@@ -17,19 +17,18 @@ const emit = defineEmits<{
   <div class="panel tool-dock">
     <button type="button" class="tool-button" :class="{ 'is-active': activeMenu === 'novels' }" @click="emit('toggleMenu', 'novels')">
       <span>作品</span>
-      <strong>{{ selectedNovel?.name ?? '' }}</strong>
+      <em class="tool-badge">{{ selectedNovel?.name ?? '未選擇' }}</em>
     </button>
     <button type="button" class="tool-button" :class="{ 'is-active': activeMenu === 'search' }" @click="emit('toggleMenu', 'search')">
       <span>搜尋</span>
-      <strong>{{ searchQuery.trim() ? '定位人物' : '打開搜尋' }}</strong>
+      <em v-if="searchQuery.trim()" class="tool-badge">{{ searchQuery.trim() }}</em>
     </button>
     <button type="button" class="tool-button" :class="{ 'is-active': activeMenu === 'filters' }" @click="emit('toggleMenu', 'filters')">
       <span>篩選</span>
-      <strong>{{ activeFilterCount > 0 ? `${activeFilterCount} 項啟用` : '全部關係' }}</strong>
+      <em v-if="activeFilterCount > 0" class="tool-badge">{{ activeFilterCount }}</em>
     </button>
     <button type="button" class="tool-button" :class="{ 'is-active': activeMenu === 'legend' }" @click="emit('toggleMenu', 'legend')">
       <span>圖例</span>
-      <strong>關係樣式</strong>
     </button>
   </div>
 </template>
