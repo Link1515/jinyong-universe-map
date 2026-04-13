@@ -12,4 +12,5 @@ export const relationshipTypes: RelationshipType[] = [
   { id: 'pursuit', name: '追殺', group: '對立', color: '#bf3b3b', line: 'dotted' },
   { id: 'benefactor', name: '恩義', group: '特殊', color: '#4a7c59', line: 'dotted' },
   { id: 'retainer', name: '主僕', group: '特殊', color: '#735c3f', line: 'dashed' },
+  { id: 'special', name: '特殊', group: '特殊', color: '#6c5b7b', line: 'dotted' },
 ]
