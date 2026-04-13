@@ -32,6 +32,9 @@ export function createGraphView(container: HTMLElement, callbacks: GraphCallback
   zoomControls.className = 'graph-zoom-controls'
   zoomControls.innerHTML = `
     <button type="button" class="graph-zoom-button" data-zoom-action="in" aria-label="放大圖譜">+</button>
+    <button type="button" class="graph-zoom-button graph-zoom-button-reset" data-zoom-action="fit" aria-label="顯示整張圖">
+      <span aria-hidden="true">⤢</span>
+    </button>
     <button type="button" class="graph-zoom-button" data-zoom-action="out" aria-label="縮小圖譜">-</button>
   `
   container.append(zoomControls)
@@ -145,6 +148,11 @@ export function createGraphView(container: HTMLElement, callbacks: GraphCallback
 
   zoomControls.querySelectorAll<HTMLElement>('[data-zoom-action]').forEach(element => {
     element.addEventListener('click', () => {
+      if (element.dataset.zoomAction === 'fit') {
+        fitGraph(cy)
+        return
+      }
+
       const action = element.dataset.zoomAction === 'in' ? zoomStep : 1 / zoomStep
       zoomByStep(cy, action)
     })

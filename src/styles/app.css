@@ -99,6 +99,17 @@ input {
   box-shadow: 0 0 0 3px rgba(140, 59, 42, 0.14);
 }
 
+.graph-zoom-button-reset {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.graph-zoom-button-reset span {
+  display: block;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
 .panel {
   background: var(--surface);
   backdrop-filter: blur(16px);
