@@ -1,11 +1,21 @@
-import cytoscape, { type Core, type ElementDefinition } from 'cytoscape'
+import cytoscape, { type Core, type EdgeSingular, type ElementDefinition, type NodeSingular } from 'cytoscape'
 import type { VisibleGraph } from '../types'
 
 const NODE_WIDTH = 92
 const NODE_HEIGHT = 54
-const MIN_NODE_SPACING = 150
-const BASE_RING_RADIUS = 210
-const COMPONENT_PADDING = 220
+const MIN_NODE_SPACING = 168
+const BASE_RING_RADIUS = 230
+const COMPONENT_PADDING = 280
+const NODE_COLLISION_GAP = 46
+const EDGE_AVOIDANCE_GAP = 58
+const POST_LAYOUT_PASSES = 84
+const MAX_POST_LAYOUT_SHIFT = 14
+const RELATED_EDGE_LENGTH = 275
+
+interface Point {
+  x: number
+  y: number
+}
 
 interface GraphCallbacks {
   onNodeSelect: (nodeId: string) => void
@@ -36,8 +46,8 @@ export function createGraphView(container: HTMLElement, callbacks: GraphCallback
     elements: [],
     layout: { name: 'preset' },
     wheelSensitivity: 2.2,
-    minZoom: 0.3,
-    maxZoom: 2.2,
+    minZoom: 0.18,
+    maxZoom: 2.4,
     boxSelectionEnabled: false,
     style: [
       {
@@ -67,16 +77,22 @@ export function createGraphView(container: HTMLElement, callbacks: GraphCallback
           'line-color': 'data(color)',
           'target-arrow-color': 'data(color)',
           'target-arrow-shape': 'data(arrowShape)',
-          'curve-style': 'bezier',
+          'curve-style': 'data(curveStyle)',
+          'control-point-distances': 'data(controlPointDistances)',
+          'control-point-weights': '0.5',
+          'loop-direction': '-45deg',
+          'loop-sweep': '60deg',
           'line-style': 'data(lineStyle)',
           label: 'data(label)',
           color: '#6d543d',
           'font-size': 11,
           'text-background-color': 'rgba(255, 248, 237, 0.92)',
           'text-background-opacity': 1,
-          'text-background-padding': 3,
+          'text-background-padding': 4,
           'text-rotation': 'autorotate',
+          'text-margin-y': -6,
           'overlay-opacity': 0,
+          'z-index': 1,
         },
       },
       {
@@ -160,58 +176,58 @@ export function createGraphView(container: HTMLElement, callbacks: GraphCallback
       }
     })
 
-    const edgeElements: ElementDefinition[] = graph.relationships.map(relationship => ({
-      group: 'edges',
-      data: {
-        id: relationship.id,
-        source: relationship.source,
-        target: relationship.target,
-        label: relationship.label,
-        weight: relationship.weight,
-        color: relationship.typeConfig?.color ?? '#666666',
-        lineStyle: toCyLineStyle(relationship.typeConfig?.line),
-        arrowShape: relationship.directed ? 'triangle' : 'none',
-      },
-    }))
+    const edgeRouteData = buildEdgeRouteData(graph)
+    const edgeElements: ElementDefinition[] = graph.relationships.map(relationship => {
+      const routeData = edgeRouteData.get(relationship.id)
+
+      return {
+        group: 'edges',
+        data: {
+          id: relationship.id,
+          source: relationship.source,
+          target: relationship.target,
+          label: relationship.label,
+          weight: relationship.weight,
+          color: relationship.typeConfig?.color ?? '#666666',
+          lineStyle: toCyLineStyle(relationship.typeConfig?.line),
+          arrowShape: relationship.directed ? 'triangle' : 'none',
+          curveStyle: routeData?.curveStyle ?? 'unbundled-bezier',
+          controlPointDistances: routeData?.controlPointDistances ?? 0,
+        },
+      }
+    })
 
     cy.elements().remove()
     cy.add([...nodeElements, ...edgeElements])
 
-    const hasPresetPositions = nodeElements.some(element => 'position' in element)
-    const layout = cy.layout(
-      hasPresetPositions
-        ? {
-            name: 'preset',
-            animate: false,
-            fit: false,
-          }
-        : {
-            name: 'cose',
-            animate: false,
-            fit: false,
-            randomize: false,
-            padding: 120,
-            nodeRepulsion(node) {
-              return 320000 + node.degree(false) * 42000
-            },
-            idealEdgeLength(edge) {
-              const weight = Number(edge.data('weight')) || 1
-              return 210 + Math.max(0, 5 - weight) * 28
-            },
-            edgeElasticity(edge) {
-              const weight = Number(edge.data('weight')) || 1
-              return 90 + weight * 18
-            },
-            gravity: 0.08,
-            componentSpacing: 320,
-            nestingFactor: 0.7,
-            numIter: 3200,
-            initialTemp: 900,
-            coolingFactor: 0.96,
-          }
-    )
+    const layout = cy.layout({
+      name: 'cose',
+      animate: false,
+      fit: false,
+      randomize: false,
+      padding: 160,
+      nodeRepulsion(node) {
+        return 520000 + node.degree(false) * 72000
+      },
+      nodeOverlap: 80,
+      idealEdgeLength(edge) {
+        const weight = Number(edge.data('weight')) || 1
+        return RELATED_EDGE_LENGTH + Math.max(0, 5 - weight) * 30
+      },
+      edgeElasticity(edge) {
+        const weight = Number(edge.data('weight')) || 1
+        return 92 + weight * 18
+      },
+      gravity: 0.05,
+      componentSpacing: 360,
+      nestingFactor: 0.65,
+      numIter: 5200,
+      initialTemp: 1200,
+      coolingFactor: 0.97,
+    })
 
     layout.run()
+    improveGraphSpacing(cy)
     fitGraph(cy)
     hasRenderedGraph = true
 
@@ -294,9 +310,9 @@ function fitGraph(cy: Core): void {
     return
   }
 
-  cy.fit(cy.elements(), 96)
+  cy.fit(cy.elements(), 72)
 
-  const nextZoom = Math.min(cy.zoom(), 0.78)
+  const nextZoom = Math.min(cy.zoom(), 0.88)
   if (nextZoom !== cy.zoom()) {
     cy.zoom({
       level: nextZoom,
@@ -336,6 +352,256 @@ function toCyLineStyle(line: 'solid' | 'dashed' | 'dotted' | undefined): 'solid'
   }
 
   return 'solid'
+}
+
+function buildEdgeRouteData(graph: VisibleGraph): Map<
+  string,
+  {
+    curveStyle: 'straight' | 'unbundled-bezier'
+    controlPointDistances: number
+  }
+> {
+  const edgeGroups = new Map<string, string[]>()
+
+  graph.relationships.forEach(relationship => {
+    const key = [relationship.source, relationship.target].sort().join('::')
+    const edgeIds = edgeGroups.get(key) ?? []
+    edgeIds.push(relationship.id)
+    edgeGroups.set(key, edgeIds)
+  })
+
+  const routeData = new Map<
+    string,
+    {
+      curveStyle: 'straight' | 'unbundled-bezier'
+      controlPointDistances: number
+    }
+  >()
+
+  edgeGroups.forEach(edgeIds => {
+    if (edgeIds.length === 1) {
+      routeData.set(edgeIds[0], {
+        curveStyle: 'unbundled-bezier',
+        controlPointDistances: 18,
+      })
+      return
+    }
+
+    const centerIndex = (edgeIds.length - 1) / 2
+    edgeIds.forEach((edgeId, index) => {
+      const offset = (index - centerIndex) * 44
+      routeData.set(edgeId, {
+        curveStyle: 'unbundled-bezier',
+        controlPointDistances: offset === 0 ? 18 : offset,
+      })
+    })
+  })
+
+  return routeData
+}
+
+function improveGraphSpacing(cy: Core): void {
+  const nodes = cy.nodes().toArray()
+  const edges = cy.edges().toArray()
+
+  if (nodes.length < 2) {
+    return
+  }
+
+  for (let pass = 0; pass < POST_LAYOUT_PASSES; pass += 1) {
+    let totalShift = 0
+
+    totalShift += pullConnectedNodesCloser(edges)
+    totalShift += separateOverlappingNodes(nodes)
+    totalShift += moveNodesAwayFromEdges(nodes, edges)
+
+    if (totalShift < 0.5) {
+      break
+    }
+  }
+}
+
+function pullConnectedNodesCloser(edges: EdgeSingular[]): number {
+  let totalShift = 0
+
+  edges.forEach(edge => {
+    const source = edge.source()
+    const target = edge.target()
+    const sourcePosition = source.position()
+    const targetPosition = target.position()
+    const dx = targetPosition.x - sourcePosition.x
+    const dy = targetPosition.y - sourcePosition.y
+    const distance = Math.hypot(dx, dy)
+
+    if (distance === 0) {
+      return
+    }
+
+    const weight = Number(edge.data('weight')) || 1
+    const targetDistance = RELATED_EDGE_LENGTH + Math.max(0, 5 - weight) * 24
+
+    if (distance <= targetDistance) {
+      return
+    }
+
+    const shift = Math.min((distance - targetDistance) * 0.028, MAX_POST_LAYOUT_SHIFT)
+    const unitX = dx / distance
+    const unitY = dy / distance
+
+    moveNode(source, unitX * shift, unitY * shift)
+    moveNode(target, -unitX * shift, -unitY * shift)
+    totalShift += shift * 2
+  })
+
+  return totalShift
+}
+
+function separateOverlappingNodes(nodes: NodeSingular[]): number {
+  let totalShift = 0
+  const minXDistance = NODE_WIDTH + NODE_COLLISION_GAP
+  const minYDistance = NODE_HEIGHT + NODE_COLLISION_GAP
+
+  for (let leftIndex = 0; leftIndex < nodes.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < nodes.length; rightIndex += 1) {
+      const left = nodes[leftIndex]
+      const right = nodes[rightIndex]
+      const leftPosition = left.position()
+      const rightPosition = right.position()
+      let dx = rightPosition.x - leftPosition.x
+      let dy = rightPosition.y - leftPosition.y
+
+      if (Math.abs(dx) >= minXDistance || Math.abs(dy) >= minYDistance) {
+        continue
+      }
+
+      if (dx === 0 && dy === 0) {
+        dx = deterministicOffset(left.id(), right.id())
+        dy = deterministicOffset(right.id(), left.id())
+      }
+
+      const overlapX = minXDistance - Math.abs(dx)
+      const overlapY = minYDistance - Math.abs(dy)
+
+      if (overlapX < overlapY) {
+        const shift = Math.min(overlapX / 2, MAX_POST_LAYOUT_SHIFT)
+        const direction = Math.sign(dx) || 1
+        moveNode(left, -shift * direction, 0)
+        moveNode(right, shift * direction, 0)
+        totalShift += shift * 2
+      } else {
+        const shift = Math.min(overlapY / 2, MAX_POST_LAYOUT_SHIFT)
+        const direction = Math.sign(dy) || 1
+        moveNode(left, 0, -shift * direction)
+        moveNode(right, 0, shift * direction)
+        totalShift += shift * 2
+      }
+    }
+  }
+
+  return totalShift
+}
+
+function moveNodesAwayFromEdges(nodes: NodeSingular[], edges: EdgeSingular[]): number {
+  let totalShift = 0
+
+  edges.forEach(edge => {
+    const source = edge.source()
+    const target = edge.target()
+    const sourcePosition = source.position()
+    const targetPosition = target.position()
+
+    nodes.forEach(node => {
+      if (node.same(source) || node.same(target)) {
+        return
+      }
+
+      const nodePosition = node.position()
+      const projection = projectPointToSegment(nodePosition, sourcePosition, targetPosition)
+
+      if (projection.distance >= EDGE_AVOIDANCE_GAP) {
+        return
+      }
+
+      const fallback = perpendicularUnit(sourcePosition, targetPosition)
+      const direction = normalizePoint({
+        x: nodePosition.x - projection.point.x,
+        y: nodePosition.y - projection.point.y,
+      }) ?? fallback
+      const shift = Math.min((EDGE_AVOIDANCE_GAP - projection.distance) * 0.36, MAX_POST_LAYOUT_SHIFT)
+
+      moveNode(node, direction.x * shift, direction.y * shift)
+      totalShift += shift
+    })
+  })
+
+  return totalShift
+}
+
+function moveNode(node: NodeSingular, dx: number, dy: number): void {
+  const position = node.position()
+  node.position({
+    x: position.x + dx,
+    y: position.y + dy,
+  })
+}
+
+function projectPointToSegment(point: Point, start: Point, end: Point): { point: Point; distance: number } {
+  const dx = end.x - start.x
+  const dy = end.y - start.y
+  const lengthSquared = dx * dx + dy * dy
+
+  if (lengthSquared === 0) {
+    return {
+      point: start,
+      distance: distanceBetween(point, start),
+    }
+  }
+
+  const ratio = Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared))
+  const projected = {
+    x: start.x + ratio * dx,
+    y: start.y + ratio * dy,
+  }
+
+  return {
+    point: projected,
+    distance: distanceBetween(point, projected),
+  }
+}
+
+function normalizePoint(point: Point): Point | null {
+  const length = Math.hypot(point.x, point.y)
+
+  if (length === 0) {
+    return null
+  }
+
+  return {
+    x: point.x / length,
+    y: point.y / length,
+  }
+}
+
+function perpendicularUnit(start: Point, end: Point): Point {
+  return normalizePoint({
+    x: -(end.y - start.y),
+    y: end.x - start.x,
+  }) ?? { x: 0, y: -1 }
+}
+
+function distanceBetween(left: Point, right: Point): number {
+  return Math.hypot(left.x - right.x, left.y - right.y)
+}
+
+function deterministicOffset(leftId: string, rightId: string): number {
+  let hash = 0
+  const value = `${leftId}:${rightId}`
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) % 997
+  }
+
+  return (hash % 2 === 0 ? 1 : -1) * (8 + (hash % 11))
 }
 
 function buildSeedPositions(graph: VisibleGraph): Map<string, { x: number; y: number }> {
